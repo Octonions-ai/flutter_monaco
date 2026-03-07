@@ -269,6 +269,40 @@ class MonacoController {
     );
   }
 
+  /// Registers a custom Monaco theme via `monaco.editor.defineTheme()`.
+  ///
+  /// [name] is the theme identifier (e.g. 'octonion-retro-80s').
+  /// [base] must be one of 'vs', 'vs-dark', 'hc-black', 'hc-light'.
+  /// [colors] maps Monaco color keys (e.g. 'editor.background') to hex strings.
+  /// [rules] optionally overrides token colors.
+  Future<void> defineCustomTheme(
+    String name, {
+    required String base,
+    bool inherit = true,
+    Map<String, String> colors = const {},
+    List<Map<String, String>> rules = const [],
+  }) async {
+    await _ensureReady();
+    final data = {
+      'base': base,
+      'inherit': inherit,
+      'rules': rules,
+      'colors': colors,
+    };
+    await _webViewController.runJavaScript(
+      'monaco.editor.defineTheme(${jsonEncode(name)}, ${jsonEncode(data)})',
+    );
+  }
+
+  /// Applies a theme by string ID — works with custom themes registered
+  /// via [defineCustomTheme] as well as built-in theme IDs.
+  Future<void> setThemeByName(String name) async {
+    await _ensureReady();
+    await _webViewController.runJavaScript(
+      'flutterMonaco.setTheme(${jsonEncode(name)})',
+    );
+  }
+
   /// Sets the background color of the WebView container.
   ///
   /// Applied immediately to the native view, even if Monaco is still loading.
