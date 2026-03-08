@@ -1118,6 +1118,28 @@ class MonacoController {
     );
   }
 
+  // --- CUSTOM SCRIPT / EVENT LISTENER ---
+
+  /// Execute arbitrary JavaScript in the Monaco WebView context.
+  /// Has access to window.editor, window.monaco, window.flutterMonaco.
+  Future<void> runCustomScript(String script) async {
+    await _ensureReady();
+    await _webViewController.runJavaScript(script);
+  }
+
+  /// Listen for a named custom event from JavaScript.
+  /// Returns a teardown function that removes the listener.
+  VoidCallback addCustomEventListener(
+    String eventName,
+    void Function(Map<String, dynamic>) callback,
+  ) {
+    void listener(Map<String, dynamic> json) {
+      if (json['event'] == eventName) callback(json);
+    }
+    _bridge.addRawListener(listener);
+    return () => _bridge.removeRawListener(listener);
+  }
+
   // --- BATCH OPERATIONS ---
 
   /// Execute multiple operations in batch
